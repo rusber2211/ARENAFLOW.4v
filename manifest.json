@@ -1,0 +1,23 @@
+{
+  "name": "Vila da Barra — Beach Vôlei",
+  "short_name": "Vila da Barra",
+  "description": "Controle de rotatividade, placar e histórico de partidas de vôlei de praia.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4E0B9",
+  "theme_color": "#0B4650",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

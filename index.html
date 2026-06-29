@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vila da Barra — Beach Vôlei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B4650">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vila da Barra">
+</head>
+<body>
+
+<header class="banner">
+  <div class="banner-inner">
+    <span class="eyebrow">Quadra de areia · Vila da Barra</span>
+    <h1>🏐 Vila da Barra</h1>
+  </div>
+  <div class="horizonte" aria-hidden="true">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none">
+      <path style="fill: var(--areia)" d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z"></path>
+    </svg>
+  </div>
+</header>
+
+<label class="toggle-historico">
+  <input type="checkbox" id="togglePagina" onchange="alternarPagina()">
+  <span>📊 Histórico & Ranking</span>
+</label>
+
+<main>
+
+<section class="controle">
+  <input type="text" id="nomeInput" placeholder="Nome do atleta">
+  <button onclick="addPlayer()">+ Adicionar</button>
+</section>
+
+<!-- ===================== PLACAR ===================== -->
+<section class="placar" id="placar" aria-label="Placar da partida">
+
+  <!-- TIME A -->
+  <div class="placar-time" id="placarA">
+ <div class="saque-slot" id="saqueSlotA">
+  <button class="saque-bolinha" id="saqueBolinha" type="button" onclick="alternarSaqueManual()" aria-label="Marcar quem está sacando">🏐</button>
+</div>
+  <span class="placar-nome">Time A</span>
+  <strong class="placar-valor" id="scoreA">0</strong>
+  <div class="placar-controles">
+    <button onclick="removerPonto('A')" aria-label="Remover ponto do Time A">–</button>
+    <button onclick="addPonto('A')" aria-label="Adicionar ponto ao Time A">+</button>
+  </div>
+</div>
+
+  <div class="placar-divisor" aria-hidden="true"></div>
+
+  <!-- CENTRO: CRONÔMETRO + TROCAR LADOS -->
+  <div class="placar-centro" id="placarCentro">
+    <div class="cronometro" id="cronometro">
+      <span id="tempoPartida">00:00</span>
+
+      <div class="cronometro-controles">
+        <button onclick="iniciarPausarCronometro()" id="btnCronometro">▶</button>
+        <button onclick="resetarCronometro()">↺</button>
+      </div>
+
+      <button class="trocar-btn" onclick="trocarLados()">
+        ⇄ Trocar lados
+      </button>
+    </div>
+  </div>
+
+  <!-- TIME B -->
+<div class="placar-time" id="placarB">
+  <div class="saque-slot" id="saqueSlotB"></div>
+  <span class="placar-nome">Time B</span>
+  <strong class="placar-valor" id="scoreB">0</strong>
+  <div class="placar-controles">
+    <button onclick="removerPonto('B')" aria-label="Remover ponto do Time B">–</button>
+    <button onclick="addPonto('B')" aria-label="Adicionar ponto ao Time B">+</button>
+  </div>
+</div>
+
+</section>
+<!-- ===================== QUADRA ===================== -->
+<section class="quadra" id="quadra">
+  <div id="timeA" class="card quadra-card">
+    <h2>Time A <span class="contador" id="contTimeA">0/4</span></h2>
+  </div>
+
+  <div class="rede" aria-hidden="true"></div>
+
+  <div id="timeB" class="card quadra-card">
+    <h2>Time B <span class="contador" id="contTimeB">0/4</span></h2>
+  </div>
+</section>
+
+<section class="extras">
+  <div id="marcacao" class="card">
+    <h2>📌 Marcação <span class="contador" id="contMarcacao">0/4</span></h2>
+  </div>
+
+  <div id="fila" class="card">
+    <h2>📋 Fila</h2>
+  </div>
+
+  <div id="eliminados" class="card danger">
+    <h2>🟥 Eliminados <span class="contador" id="contEliminados">0</span></h2>
+    <div class="acoes-eliminados">
+      <button onclick="event.stopPropagation(); reenviarEliminadosParaFila()">↩️ Todos pra fila</button>
+      <button id="btnModoSemEliminacao" onclick="event.stopPropagation(); alternarModoSemEliminacao()">🔓 Perdedor vai pra eliminados</button>
+    </div>
+  </div>
+</section>
+
+<div id="lixeira" class="lixeira">
+  🗑️ Toque aqui para eliminar definitivamente o atleta selecionado
+</div>
+
+<button class="finalizar" onclick="finalizarPartida()">
+  🏁 Finalizar Partida
+</button>
+
+</main>
+
+<div class="pagina-overlay" id="paginaHistorico">
+  <div class="pagina-conteudo">
+    <button class="pagina-fechar" onclick="fecharPagina()">✕ Voltar à quadra</button>
+
+    <div class="pagina-abas">
+      <button class="aba-btn ativa" id="abaHistoricoBtn" onclick="mostrarAba('historico')">🕒 Histórico</button>
+      <button class="aba-btn" id="abaRankingBtn" onclick="mostrarAba('ranking')">🏆 Ranking</button>
+    </div>
+
+    <div id="abaHistorico" class="aba-painel">
+      <h2>Histórico de Partidas</h2>
+
+     <div class="acoes-historico">
+  <button onclick="exportarHistorico()">📄 Exportar Ranking (PDF)</button>
+  <button onclick="confirmarResetRanking()">🗑️ Zerar ranking</button>
+    </div>
+
+      <div id="listaHistorico"></div>
+    </div>
+
+    <div id="abaRanking" class="aba-painel oculta">
+      <h2>Ranking de Vitórias</h2>
+      <div id="listaRanking"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.0.0/jspdf.umd.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
