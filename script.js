@@ -23,6 +23,8 @@ let contador = 1;
 let jogadorSelecionado = null;
 let saqueAtual = "A";
 let modoSemEliminacao = false; // quando true, perdedor cai direto no final da fila (não vai pra eliminados)
+let modoReordenarFila = false; // quando true, a fila entra em modo de reordenação manual (protegido por senha)
+const SENHA_REORDENAR_FILA = "1234";
 
 // ===== CRIAR JOGADOR (número de camisa fixo, criado uma vez só) =====
 function criarPlayerComNumero(nome, numero, jogando) {
@@ -75,6 +77,8 @@ function addPlayer() {
 
 // ===== SELEÇÃO (clique pra selecionar, clique na área pra mover) =====
 function selecionarJogador(el) {
+  if (modoReordenarFila) return; // durante a reordenação, o clique no jogador não seleciona pra mover entre áreas
+
   if (jogadorSelecionado === el) {
     el.classList.remove("selecionado");
     jogadorSelecionado = null;
@@ -138,6 +142,98 @@ lixeira.addEventListener("click", () => {
 function atualizarFila() {
   const jogadores = areas.fila.querySelectorAll(".player");
   jogadores.forEach((p, i) => p.classList.toggle("proximo", i === 0));
+  atualizarSetasFila();
+}
+
+// ===== REORDENAR FILA (protegido por senha) =====
+function alternarModoReordenarFila() {
+  if (!modoReordenarFila) {
+    const senha = prompt("Digite a senha para reordenar a fila:");
+    if (senha === null) return; // usuário cancelou
+    if (senha !== SENHA_REORDENAR_FILA) {
+      alert("Senha incorreta!");
+      return;
+    }
+  }
+
+  modoReordenarFila = !modoReordenarFila;
+
+  if (modoReordenarFila && jogadorSelecionado) {
+    jogadorSelecionado.classList.remove("selecionado");
+    jogadorSelecionado = null;
+  }
+
+  const btn = document.getElementById("btnReordenarFila");
+  if (btn) {
+    btn.textContent = modoReordenarFila ? "✅ Concluir" : "🔀 Reordenar";
+    btn.classList.toggle("ativo", modoReordenarFila);
+  }
+  areas.fila.classList.toggle("modo-reordenar", modoReordenarFila);
+
+  atualizarSetasFila();
+}
+
+// mostra/esconde as setinhas ↑↓ em cada jogador da fila, conforme o modo de reordenação
+function atualizarSetasFila() {
+  const jogadores = [...areas.fila.querySelectorAll(".player")];
+
+  jogadores.forEach((p, i) => {
+    let setas = p.querySelector(".fila-setas");
+
+    if (!modoReordenarFila) {
+      if (setas) setas.remove();
+      return;
+    }
+
+    if (!setas) {
+      setas = document.createElement("span");
+      setas.className = "fila-setas";
+
+      const btnCima = document.createElement("button");
+      btnCima.type = "button";
+      btnCima.className = "fila-seta";
+      btnCima.textContent = "↑";
+      btnCima.addEventListener("click", (e) => {
+        e.stopPropagation();
+        moverJogadorNaFila(p, -1);
+      });
+
+      const btnBaixo = document.createElement("button");
+      btnBaixo.type = "button";
+      btnBaixo.className = "fila-seta";
+      btnBaixo.textContent = "↓";
+      btnBaixo.addEventListener("click", (e) => {
+        e.stopPropagation();
+        moverJogadorNaFila(p, 1);
+      });
+
+      setas.appendChild(btnCima);
+      setas.appendChild(btnBaixo);
+      p.appendChild(setas);
+    }
+
+    const [btnCima, btnBaixo] = setas.querySelectorAll("button");
+    btnCima.disabled = i === 0;
+    btnBaixo.disabled = i === jogadores.length - 1;
+  });
+}
+
+// move um jogador uma posição pra cima (-1) ou pra baixo (1) dentro da fila
+function moverJogadorNaFila(playerEl, direcao) {
+  const vizinho = direcao === -1
+    ? playerEl.previousElementSibling
+    : playerEl.nextElementSibling;
+
+  if (!vizinho || !vizinho.classList.contains("player")) return;
+
+  if (direcao === -1) {
+    areas.fila.insertBefore(playerEl, vizinho);
+  } else {
+    areas.fila.insertBefore(vizinho, playerEl);
+  }
+
+  atualizarFila();
+  salvarEstado();
 }
 
 // ===== CONTADORES DE OCUPAÇÃO =====
@@ -708,11 +804,41 @@ async function gerarImagemRanking(ranking) {
 
   ordemVisual.forEach((indiceRanking, slot) => {
     const jogador = top3[indiceRanking];
-    if (!jogador) return;
 
     const altura = alturas[indiceRanking];
     const x = margemLateral + slot * (larguraCard + espacoEntre);
     const yTopo = PODIO_BASELINE - altura;
+
+    // sem jogador pra essa posição (ex: só 2 atletas no ranking): desenha um pedestal
+    // vazio e isolado, mantendo o espaço e a formatação do pódio intactos
+    if (!jogador) {
+      desenharRetanguloArredondado(ctx, x, yTopo, larguraCard, altura, 16);
+      ctx.fillStyle = "rgba(226, 192, 137, 0.35)";
+      ctx.fill();
+      ctx.setLineDash([8, 7]);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = CORES.brancoOsso;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      desenharRetanguloArredondado(ctx, x, yTopo, larguraCard, 10, 5);
+      ctx.fillStyle = "rgba(11, 70, 80, 0.15)";
+      ctx.fill();
+
+      const cxVazio = x + larguraCard / 2;
+
+      ctx.textAlign = "center";
+      ctx.globalAlpha = 0.35;
+      ctx.font = "42px Arial";
+      ctx.fillText(medalhas[indiceRanking], cxVazio, yTopo + 48);
+      ctx.globalAlpha = 1;
+
+      ctx.font = '400 22px "Bebas Neue"';
+      ctx.fillStyle = CORES.oceano;
+      ctx.fillText("VAGO", cxVazio, yTopo + altura / 2 + 34);
+
+      return;
+    }
 
     // bloco do pódio (estilo .card: areia-escura com borda branco-osso)
     desenharRetanguloArredondado(ctx, x, yTopo, larguraCard, altura, 16);

@@ -351,6 +351,50 @@ button:hover {
   margin-bottom: 4px;
 }
 
+.fila-reordenar-btn {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  background: var(--oceano);
+  color: var(--branco-osso);
+  border-radius: 999px;
+}
+
+.fila-reordenar-btn.ativo {
+  background: var(--coral);
+}
+
+.fila-setas {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.fila-seta {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--oceano-profundo);
+  color: var(--branco-osso);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.fila-seta:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+#fila.modo-reordenar .player {
+  cursor: default;
+}
+
+#fila.modo-reordenar .player:hover {
+  transform: none;
+}
+
 .contador {
   font-family: var(--font-body);
   font-size: 12px;
